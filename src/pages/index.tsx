@@ -1,7 +1,9 @@
 import Head from "next/head";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
+import Microab from "../../SDK/microABInstance";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,6 +16,34 @@ const geistMono = Geist_Mono({
 });
 
 export default function Home() {
+  const microabRef = useRef<Microab | null>(null);
+
+  useEffect(() => {
+    const initSDK = async () => {
+      const sdk = new Microab();
+      await sdk.init();
+      microabRef.current = sdk;
+    };
+
+    initSDK();
+  }, []);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      if (target.matches(".myTestClass") && microabRef.current) {
+        microabRef.current.sendEventCount();
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick); // Desmount click when re-render the component
+    };
+  }, []);
+
   return (
     <>
       <Head>
@@ -42,7 +72,11 @@ export default function Home() {
           </ol>
 
           <div className={styles.ctas}>
-            <a className={styles.primary} href="#" rel="noopener noreferrer">
+            <a
+              className={`${styles.primary} myTestClass`}
+              href="#"
+              rel="noopener noreferrer"
+            >
               <Image
                 className={styles.logo}
                 src="/vercel.svg"
