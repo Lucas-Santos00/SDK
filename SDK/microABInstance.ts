@@ -13,20 +13,32 @@ class Microab {
     this.url = "http://127.0.0.1:3001";
   }
 
-  async init(): Promise<void> {
-    const res = await fetch("/api/microabRoute");
-    const data = await res.json();
-    this.jwt = data.generateJWT;
-    this.style = data.style;
-  }
-
   async sendEventCount() {
     fetch(`${this.url}/event/count`, {
       method: "POST",
       body: JSON.stringify({ jwt: this.jwt, style: this.style }),
     });
+  }
 
-    console.log({ jwt: this.jwt, style: this.style });
+  attachClickListener(selector: string) {
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.matches(selector)) {
+        this.sendEventCount();
+      }
+    };
+
+    document.addEventListener("click", handler);
+
+    // Remove the listener
+    return () => document.removeEventListener("click", handler);
+  }
+
+  async init(): Promise<void> {
+    const JWT_StyleFromAPI = await fetch("/api/microabRoute");
+    const data = await JWT_StyleFromAPI.json();
+    this.jwt = data.generateJWT;
+    this.style = data.generateJWT;
   }
 }
 

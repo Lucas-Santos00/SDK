@@ -19,28 +19,20 @@ export default function Home() {
   const microabRef = useRef<Microab | null>(null);
 
   useEffect(() => {
-    const initSDK = async () => {
+    // MicroAB
+    const setup = async () => {
       const sdk = new Microab();
       await sdk.init();
       microabRef.current = sdk;
+
+      const cleanup = sdk.attachClickListener(".myTestClass");
+      return cleanup;
     };
 
-    initSDK();
-  }, []);
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-
-      if (target.matches(".myTestClass") && microabRef.current) {
-        microabRef.current.sendEventCount();
-      }
-    };
-
-    document.addEventListener("click", handleClick);
+    const cleanupPromise = setup();
 
     return () => {
-      document.removeEventListener("click", handleClick); // Desmount click when re-render the component
+      cleanupPromise.then((cleanup) => cleanup && cleanup());
     };
   }, []);
 
