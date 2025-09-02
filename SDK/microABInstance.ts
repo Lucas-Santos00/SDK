@@ -16,6 +16,9 @@ class Microab {
   async sendEventCount() {
     fetch(`${this.url}/event/count`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ jwt: this.jwt, style: this.style }),
     });
   }
@@ -38,7 +41,7 @@ class Microab {
     const JWT_StyleFromAPI = await fetch("/api/microabRoute");
     const data = await JWT_StyleFromAPI.json();
     this.jwt = data.generateJWT;
-    this.style = data.generateJWT;
+    this.style = data.style;
   }
 }
 
