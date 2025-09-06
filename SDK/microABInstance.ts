@@ -4,6 +4,7 @@ import type { userCookieType } from "./models/models";
 
 class Microab {
   private url: string;
+  static readonly projectID: number = 534;
   private jwt: string | null = null;
   private style: number | null = null;
   private userCookie: userCookieType = undefined;
@@ -19,7 +20,11 @@ class Microab {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ jwt: this.jwt, style: this.style }),
+      body: JSON.stringify({
+        jwt: this.jwt,
+        style: this.style,
+        projectID: Microab.projectID,
+      }),
     });
   }
 
