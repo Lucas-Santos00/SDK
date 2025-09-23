@@ -1,18 +1,11 @@
-// This file HAVE to run in back End only!
-//
-// 7a4f1e0e61c2d6d3c3b07a49722b3b9c21b0e6f67a41d7fa2bffb309b8f6c2d5
-import type { NextApiRequest, NextApiResponse } from "next";
+"use server";
 
 const privateKey =
   "7a4f1e0e61c2d6d3c3b07a49722b3b9c21b0e6f67a41d7fa2bffb309b8f6c2d5";
 const url = "http://127.0.0.1:3001";
 const projectId = 534;
 
-async function getStyleAndJWT(
-  req: NextApiRequest,
-  res: NextApiResponse,
-  testeId: number,
-) {
+const bootStrapMicroAB = async () => {
   const microAbReply = fetch(`${url}/bootStrap/${projectId}`, {
     method: "GET",
     headers: {
@@ -23,7 +16,7 @@ async function getStyleAndJWT(
     .then((data) => data.json())
     .catch((err) => err);
 
-  console.log(microAbReply);
-}
+  return microAbReply;
+};
 
-export default getStyleAndJWT;
+export default bootStrapMicroAB;

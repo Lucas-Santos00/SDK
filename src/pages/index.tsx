@@ -1,9 +1,8 @@
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import Microab from "../../SDK/microABInstance";
+import MicroAbComponent from "../../SDK/Micro-ab-component";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,26 +15,6 @@ const geistMono = Geist_Mono({
 });
 
 export default function Home() {
-  const microabRef = useRef<Microab | null>(null);
-
-  useEffect(() => {
-    // MicroAB
-    const setup = async () => {
-      const sdk = new Microab();
-      await sdk.init();
-      microabRef.current = sdk;
-
-      const cleanup = sdk.attachClickListener(".myTestClass");
-      return cleanup;
-    };
-
-    const cleanupPromise = setup();
-
-    return () => {
-      cleanupPromise.then((cleanup) => cleanup && cleanup());
-    };
-  }, []);
-
   return (
     <>
       <Head>
@@ -64,20 +43,7 @@ export default function Home() {
           </ol>
 
           <div className={styles.ctas}>
-            <a
-              className={`${styles.primary} myTestClass`}
-              href="#"
-              rel="noopener noreferrer"
-            >
-              <Image
-                className={styles.logo}
-                src="/vercel.svg"
-                alt="Vercel logomark"
-                width={20}
-                height={20}
-              />
-              Deploy now
-            </a>
+            <MicroAbComponent />
             <a href="#" rel="noopener noreferrer" className={styles.secondary}>
               Read our docs
             </a>
