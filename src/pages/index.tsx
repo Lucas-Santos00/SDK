@@ -2,7 +2,8 @@ import Head from "next/head";
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import MicroAbComponent from "../../SDK/Micro-ab-component";
+import MicroAB from "../../SDK/micro-ab";
+import { GetServerSideProps } from "next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +15,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function Home() {
+type SessionRouteResponse = {
+  generatedJWT: string;
+  sessionid: string;
+  style: string;
+}
+
+// This function gets called at build time - JWT, Style and SessionID are fetched from the SDK
+export async function getServerSideProps(context: GetServerSideProps) {
+
+  const microab = await MicroAB.init(534);
+  console.log(microab);
+
+  return {props: {microab: {...microab}}}
+}
+
+export default function Home(props: {microab: SessionRouteResponse  }) {
+
+  console.log(props.microab);
+
   return (
     <>
       <Head>
@@ -43,7 +62,6 @@ export default function Home() {
           </ol>
 
           <div className={styles.ctas}>
-            <MicroAbComponent />
             <a href="#" rel="noopener noreferrer" className={styles.secondary}>
               Read our docs
             </a>

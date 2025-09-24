@@ -6,17 +6,15 @@ const url = "http://127.0.0.1:3001";
 const projectId = 534;
 
 const bootStrapMicroAB = async () => {
-  const microAbReply = fetch(`${url}/bootStrap/${projectId}`, {
+  const microAbReply = await fetch(`${url}/bootStrap/${projectId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
       Authorization: privateKey,
     },
-  })
-    .then((data) => data.json())
-    .catch((err) => err);
+  });
 
-  return microAbReply;
+  return await microAbReply.json();
 };
 
 export default bootStrapMicroAB;
