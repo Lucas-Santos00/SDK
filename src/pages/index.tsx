@@ -2,8 +2,8 @@ import Head from "next/head";
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import MicroAB from "../../SDK/micro-ab";
-import { GetServerSideProps } from "next";
+import { microab, microABListener, type MicroabResponse } from "../../SDK/src/index";
+import { useEffect } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,24 +15,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-type SessionRouteResponse = {
-  generatedJWT: string;
-  sessionid: string;
-  style: string;
+export async function getServerSideProps() {
+  // Lógica para buscar dados do servidor
+
+  const appMicro = await microab();
+
+  return {
+    props: appMicro
+  };
 }
 
-// This function gets called at build time - JWT, Style and SessionID are fetched from the SDK
-export async function getServerSideProps(context: GetServerSideProps) {
+export default function Home( props: MicroabResponse ) {
 
-  const microab = await MicroAB.init(534);
-  console.log(microab);
+  const { generatedJWT, sessionid } = props;
 
-  return {props: {microab: {...microab}}}
-}
-
-export default function Home(props: {microab: SessionRouteResponse  }) {
-
-  console.log(props.microab);
+  useEffect(() => {
+    // Must use useEffect to run on client side an only after component is mounted
+    if (!generatedJWT || !sessionid) return;
+    microABListener(sessionid, generatedJWT);
+  }, [generatedJWT, sessionid]);
 
   return (
     <>
@@ -62,7 +63,7 @@ export default function Home(props: {microab: SessionRouteResponse  }) {
           </ol>
 
           <div className={styles.ctas}>
-            <a href="#" rel="noopener noreferrer" className={styles.secondary}>
+            <a href="#" rel="noopener noreferrer" className={`${styles.secondary} handleEvent`}>
               Read our docs
             </a>
           </div>
