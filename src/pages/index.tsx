@@ -2,7 +2,8 @@ import Head from "next/head";
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import microab from "../../SDK/src/index";
+import { microab, microABListener, type MicroabResponse } from "../../SDK/src/index";
+import { useEffect } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,12 +15,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-type SessionRouteResponse = {
-  generatedJWT: string;
-  sessionid: string;
-  style: number;
-};
-
 export async function getServerSideProps() {
   // Lógica para buscar dados do servidor
 
@@ -30,12 +25,15 @@ export async function getServerSideProps() {
   };
 }
 
-// props: {microab: SessionRouteResponse  }
-export default function Home( props: SessionRouteResponse ) {
+export default function Home( props: MicroabResponse ) {
 
-  const { generatedJWT, sessionid, style } = props;
+  const { generatedJWT, sessionid } = props;
 
-  console.log(generatedJWT, sessionid, style);
+  useEffect(() => {
+    // Must use useEffect to run on client side an only after component is mounted
+    if (!generatedJWT || !sessionid) return;
+    microABListener(sessionid, generatedJWT);
+  }, [generatedJWT, sessionid]);
 
   return (
     <>
@@ -65,7 +63,7 @@ export default function Home( props: SessionRouteResponse ) {
           </ol>
 
           <div className={styles.ctas}>
-            <a href="#" rel="noopener noreferrer" className={styles.secondary}>
+            <a href="#" rel="noopener noreferrer" className={`${styles.secondary} handleEvent`}>
               Read our docs
             </a>
           </div>
