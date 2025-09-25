@@ -2,8 +2,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import MicroAB from "../../SDK/micro-ab";
-import { GetServerSideProps } from "next";
+import microab from "../../SDK/src/index";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,21 +17,25 @@ const geistMono = Geist_Mono({
 type SessionRouteResponse = {
   generatedJWT: string;
   sessionid: string;
-  style: string;
+  style: number;
+};
+
+export async function getServerSideProps() {
+  // Lógica para buscar dados do servidor
+
+  const appMicro = await microab();
+
+  return {
+    props: appMicro
+  };
 }
 
-// This function gets called at build time - JWT, Style and SessionID are fetched from the SDK
-export async function getServerSideProps(context: GetServerSideProps) {
+// props: {microab: SessionRouteResponse  }
+export default function Home( props: SessionRouteResponse ) {
 
-  const microab = await MicroAB.init(534);
-  console.log(microab);
+  const { generatedJWT, sessionid, style } = props;
 
-  return {props: {microab: {...microab}}}
-}
-
-export default function Home(props: {microab: SessionRouteResponse  }) {
-
-  console.log(props.microab);
+  console.log(generatedJWT, sessionid, style);
 
   return (
     <>
