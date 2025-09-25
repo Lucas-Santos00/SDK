@@ -8,8 +8,8 @@ export type MicroabResponse = {
     style: number;
 };
 
-export async function microab() {
-    const serverResponse = await getSessionData()
+export async function microab(projectId: string, apiKey: string) {
+    const serverResponse = await getSessionData(projectId, apiKey);
     return {...serverResponse}
 }
 
@@ -18,18 +18,22 @@ export async function microABListener(sessionid: string, jwt: string, className:
     document.addEventListener("click", (event) => {
     const target = event.target as HTMLElement;
 
-    console.log("Clicked element class:", target.classList);
-
     if (target.classList.contains(className)) {
-        fetch("http://127.0.0.1:3001/event/count", {
-            method: "POST",
-            headers: {
+        try{
+            fetch("http://127.0.0.1:3001/event/count", {
+                method: "POST",
+                headers: {
                 "Content-Type": "application/json",
                 Authorization: jwt,
-            },
-            body: JSON.stringify({"sessionid": sessionid})
-        });
+                    },
+                body: JSON.stringify({"sessionid": sessionid})
+            });
+        }catch(err){
+            console.log("Error sending event to MicroAB server:", err);
+        }
     }
 });
 
 }
+
+// `${styles.secondary} handleEvent`
