@@ -2,7 +2,11 @@ import Head from "next/head";
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { microab, microABListener, type MicroabResponse } from "../../SDK/src/index";
+import {
+  microab,
+  microABListener,
+  type MicroabResponse,
+} from "../../SDK/src/index";
 import MicroAbComponent from "../components/MicroAbComponent";
 import { useEffect } from "react";
 
@@ -16,18 +20,54 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export async function getServerSideProps() {
-  // Lógica para buscar dados do servidor
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const cookie = context.req.cookies.microab_sessionid;
 
-  const appMicro = await microab('534', "7a4f1e0e61c2d6d3c3b07a49722b3b9c21b0e6f67a41d7fa2bffb309b8f6c2d5");
+  if (cookie) {
+    const cookieData = JSON.parse(cookie);
+    const token = cookieData.generatedJWT;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const now = Math.floor(Date.now() / 1000);
+
+    // Token valido
+    if (payload.exp > now) {
+      console.log("-------- Using cookie");
+      return {
+        props: cookieData,
+      };
+    }
+
+    console.log("-------- removing cookie");
+    context.res.setHeader(
+      "Set-Cookie",
+      "microab_sessionid=; HttpOnly; Path=/; Max-Age=0"
+    );
+  }
+
+  // Lógica para buscar dados do servidor - JWT, Style e SessionID
+  console.log("-------- Get server data");
+  const appMicro = await microab(
+    "534", // Project ID - You can find it in the MicroAB dashboard
+    "7a4f1e0e61c2d6d3c3b07a49722b3b9c21b0e6f67a41d7fa2bffb309b8f6c2d5" // This API Key is just for testing purposes - use .env file!
+  );
+
+  const newCookie = JSON.stringify(appMicro);
+
+  console.log("-------- New cookie");
+  context.res.setHeader(
+    "Set-Cookie",
+    `microab_sessionid=${newCookie}; HttpOnly; Path=/;`
+  );
+
+  console.log("_______________________________________________");
+  console.log(appMicro);
 
   return {
-    props: appMicro
+    props: appMicro,
   };
 }
 
-export default function Home( props: MicroabResponse ) {
-
+export default function Home(props: MicroabResponse) {
   const { generatedJWT, sessionid, style } = props;
 
   useEffect(() => {
@@ -64,7 +104,10 @@ export default function Home( props: MicroabResponse ) {
           </ol>
 
           <div className={styles.ctas}>
-            <MicroAbComponent classes={`${styles.secondary} handleEvent`} style={style} />
+            <MicroAbComponent
+              classes={`${styles.secondary} handleEvent`}
+              style={style}
+            />
           </div>
         </main>
         <footer className={styles.footer}>
