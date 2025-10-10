@@ -13,6 +13,21 @@ export async function microab(projectId: string, apiKey: string) {
   return { ...serverResponse };
 }
 
+export function validateCookie(cookie: string | undefined) {
+  if (cookie) {
+    const cookieData = JSON.parse(cookie);
+    const token = cookieData.generatedJWT;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const now = Math.floor(Date.now() / 1000);
+
+    if (payload.exp > now) {
+      return cookieData;
+    }
+  }
+
+  return false;
+}
+
 export async function microABListener(
   sessionid: string,
   jwt: string,
