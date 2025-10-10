@@ -6,11 +6,11 @@ import { GetServerSidePropsContext } from "next";
 import {
   microab,
   microABListener,
-  validateCookie,
   type MicroabResponse,
 } from "../../SDK/src/index";
 import MicroAbComponent from "../components/MicroAbComponent";
 import { useEffect } from "react";
+import { setNewCookie, removeAllCookies } from "../../SDK/src/utils/cookies";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,33 +23,17 @@ const geistMono = Geist_Mono({
 });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const cookie = context.req.cookies.microab_sessionid;
-
-  const validCookieData = validateCookie(cookie);
-
-  if (validCookieData) {
-    return {
-      props: validCookieData,
-    };
-  }
-
-  context.res.setHeader(
-    "Set-Cookie",
-    "microab_sessionid=; HttpOnly; Path=/; Max-Age=0"
-  );
-
   // Lógica para buscar dados do servidor - JWT, Style e SessionID
   const appMicro = await microab(
     "534", // Project ID - You can find it in the MicroAB dashboard
-    "7a4f1e0e61c2d6d3c3b07a49722b3b9c21b0e6f67a41d7fa2bffb309b8f6c2d5" // This API Key is just for testing purposes - use .env file!
+    "7a4f1e0e61c2d6d3c3b07a49722b3b9c21b0e6f67a41d7fa2bffb309b8f6c2d5", // This API Key is just for testing purposes - use .env file!
+    context.req.cookies.microab_sessionid
   );
 
   const serverDataToJSON = JSON.stringify(appMicro);
 
-  context.res.setHeader(
-    "Set-Cookie",
-    `microab_sessionid=${serverDataToJSON}; HttpOnly; Path=/;`
-  );
+  removeAllCookies(context);
+  setNewCookie(serverDataToJSON, context);
 
   return {
     props: appMicro,
