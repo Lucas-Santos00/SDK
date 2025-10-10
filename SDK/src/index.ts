@@ -1,6 +1,8 @@
 " use server";
 
 import getSessionData from "./utils/getSessionData";
+import { validateCookie } from "./utils/cookies";
+import { getJWTPayload } from "./utils/jwt";
 
 export type MicroabResponse = {
   generatedJWT: string;
@@ -8,26 +10,33 @@ export type MicroabResponse = {
   style: number;
 };
 
-export async function microab(projectId: string, apiKey: string) {
-  const serverResponse = await getSessionData(projectId, apiKey);
-  return { ...serverResponse };
-}
+//  Passar essa função para outro arquivo, ele deve conter toda a inicialização da aplição.
+export async function microab(
+  projectId: string,
+  apiKey: string,
+  cookie: string | undefined
+) {
+  const validCookieData = validateCookie(cookie);
 
-export function validateCookie(cookie: string | undefined) {
-  if (cookie) {
-    const cookieData = JSON.parse(cookie);
-    const token = cookieData.generatedJWT;
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const now = Math.floor(Date.now() / 1000);
-
-    if (payload.exp > now) {
-      return cookieData;
-    }
+  if (validCookieData) {
+    return validCookieData;
   }
 
-  return false;
+  // Get information from server
+  const serverResponse = await getSessionData(projectId, apiKey);
+
+  // Convert data from back end
+  const serverResponseStringfy = JSON.stringify(serverResponse);
+  const payload = getJWTPayload(serverResponseStringfy);
+
+  return {
+    generatedJWT: serverResponse.generatedJWT,
+    sessionid: payload.sessionid,
+    style: payload.style,
+  };
 }
 
+//  Passar essa função para outro arquivo, ele deve conter toda a inicialização da aplição.
 export async function microABListener(
   sessionid: string,
   jwt: string,
