@@ -2,7 +2,14 @@ import Head from "next/head";
 import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { microab, microABListener, type MicroabResponse } from "../../SDK/src/index";
+import { GetServerSidePropsContext } from "next";
+import {
+  microab,
+  microABListener,
+  validateCookie,
+  type MicroabResponse,
+} from "../../SDK/src/index";
+import MicroAbComponent from "../components/MicroAbComponent";
 import { useEffect } from "react";
 
 const geistSans = Geist({
@@ -15,19 +22,42 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export async function getServerSideProps() {
-  // Lógica para buscar dados do servidor
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const cookie = context.req.cookies.microab_sessionid;
 
-  const appMicro = await microab();
+  const validCookieData = validateCookie(cookie);
+
+  if (validCookieData) {
+    return {
+      props: validCookieData,
+    };
+  }
+
+  context.res.setHeader(
+    "Set-Cookie",
+    "microab_sessionid=; HttpOnly; Path=/; Max-Age=0"
+  );
+
+  // Lógica para buscar dados do servidor - JWT, Style e SessionID
+  const appMicro = await microab(
+    "534", // Project ID - You can find it in the MicroAB dashboard
+    "7a4f1e0e61c2d6d3c3b07a49722b3b9c21b0e6f67a41d7fa2bffb309b8f6c2d5" // This API Key is just for testing purposes - use .env file!
+  );
+
+  const serverDataToJSON = JSON.stringify(appMicro);
+
+  context.res.setHeader(
+    "Set-Cookie",
+    `microab_sessionid=${serverDataToJSON}; HttpOnly; Path=/;`
+  );
 
   return {
-    props: appMicro
+    props: appMicro,
   };
 }
 
-export default function Home( props: MicroabResponse ) {
-
-  const { generatedJWT, sessionid } = props;
+export default function Home(props: MicroabResponse) {
+  const { generatedJWT, sessionid, style } = props;
 
   useEffect(() => {
     // Must use useEffect to run on client side an only after component is mounted
@@ -63,9 +93,10 @@ export default function Home( props: MicroabResponse ) {
           </ol>
 
           <div className={styles.ctas}>
-            <a href="#" rel="noopener noreferrer" className={`${styles.secondary} handleEvent`}>
-              Read our docs
-            </a>
+            <MicroAbComponent
+              classes={`${styles.secondary} handleEvent`}
+              style={style}
+            />
           </div>
         </main>
         <footer className={styles.footer}>
